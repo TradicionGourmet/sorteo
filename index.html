@@ -49,17 +49,36 @@
         .btn:hover { background-color: #b45309; }
         .btn:active { transform: scale(0.97); }
 
-        .countdown {
-            font-size: 60px;
-            font-weight: bold;
-            color: #d97706;
+        .countdown-container {
             margin: 20px 0;
-            animation: pulse 1s infinite alternate;
+            height: 80px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
         }
 
-        @keyframes pulse {
-            0% { transform: scale(1); opacity: 0.7; }
-            100% { transform: scale(1.3); opacity: 1; }
+        .countdown {
+            font-size: 65px;
+            font-weight: bold;
+            color: #d97706;
+            animation: zoomEffect 1s ease-in-out infinite;
+        }
+
+        /* Animación de zoom individual para cada número */
+        @keyframes zoomEffect {
+            0% {
+                transform: scale(0.4);
+                opacity: 0;
+            }
+            50% {
+                transform: scale(1.1);
+                opacity: 1;
+            }
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
         }
 
         .result-box {
@@ -101,7 +120,9 @@
 
         <!-- Pantalla de cuenta regresiva (inicialmente oculta) -->
         <div id="countdown-section" class="hidden">
-            <div id="countdown-number" class="countdown">3</div>
+            <div class="countdown-container">
+                <div id="countdown-number" class="countdown">3</div>
+            </div>
             <p>Calculando tu suerte...</p>
         </div>
 
@@ -124,7 +145,6 @@
                 return;
             }
 
-            // Ocultar botón y mostrar cuenta regresiva
             document.getElementById('start-section').classList.add('hidden');
             document.getElementById('countdown-section').classList.remove('hidden');
 
@@ -136,11 +156,15 @@
                 contador--;
                 if (contador > 0) {
                     numeroDiv.innerHTML = contador;
+                    // Truco para reiniciar la animación de zoom en cada número
+                    numeroDiv.style.animation = 'none';
+                    numeroDiv.offsetHeight; // Forzar redibujado
+                    numeroDiv.style.animation = 'zoomEffect 1s ease-in-out infinite';
                 } else {
                     clearInterval(intervalo);
                     mostrarResultado();
                 }
-            }, 1000); // Cambia cada 1 segundo
+            }, 1000);
         }
 
         function mostrarResultado() {
@@ -151,7 +175,7 @@
             if (cakeId === cakeGanador) {
                 resultDiv.className = "result-box winner";
                 resultDiv.innerHTML = "🎉 ¡FELICIDADES! ¡Has ganado una PORCIÓN GRATIS de cake! Muéstrale esta pantalla al vendedor.";
-                lanzarConfeti();
+                lanzarConfetti();
             } else {
                 resultDiv.className = "result-box loser";
                 resultDiv.innerHTML = "😢 ¡Gracias por comprar! Este empaque no resultó ganador, ¡pero te esperamos en el próximo!";
