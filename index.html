@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sorteo - Tradición Gourmet</title>
+    <!-- Librería ligera para el efecto de confeti -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -15,15 +17,18 @@
             align-items: center;
             height: 100vh;
             color: #333;
+            overflow: hidden;
         }
         .card {
             background: white;
             padding: 30px;
             border-radius: 20px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
             text-align: center;
             max-width: 350px;
             width: 90%;
+            position: relative;
+            z-index: 10;
         }
         h1 { color: #d97706; font-size: 24px; margin-bottom: 10px; }
         p { font-size: 16px; color: #555; line-height: 1.5; }
@@ -38,11 +43,17 @@
             background-color: #d1fae5;
             color: #065f46;
             border: 2px dashed #10b981;
+            animation: pop 0.5s ease-out;
         }
         .loser {
             background-color: #f3f4f6;
             color: #4b5563;
             border: 2px solid #d1d5db;
+        }
+        @keyframes pop {
+            0% { transform: scale(0.8); }
+            70% { transform: scale(1.05); }
+            100% { transform: scale(1); }
         }
     </style>
 </head>
@@ -58,21 +69,43 @@
     </div>
 
     <script>
-        // Lee el número del cake desde la dirección web (ej: ?cake=1)
         const urlParams = new URLSearchParams(window.location.search);
         const cakeId = urlParams.get('cake');
         const resultDiv = document.getElementById('result');
 
-        // AQUÍ ELIGES CUÁL ES EL GANADOR (1, 2, 3 o 4)
-        // Por ejemplo, ponemos que el gancho ganador sea el número 3:
+        // Cake ganador
         const cakeGanador = "3"; 
+
+        function lanzarConfeti() {
+            // Lanza dos explosiones de confeti desde los lados
+            confetti({
+                particleCount: 80,
+                spread: 70,
+                origin: { y: 0.6 }
+            });
+            setTimeout(() => {
+                confetti({
+                    particleCount: 60,
+                    angle: 60,
+                    spread: 55,
+                    origin: { x: 0 }
+                });
+                confetti({
+                    particleCount: 60,
+                    angle: 120,
+                    spread: 55,
+                    origin: { x: 1 }
+                });
+            }, 300);
+        }
 
         if (!cakeId) {
             resultDiv.className = "result-box loser";
             resultDiv.innerHTML = "⚠️ Enlace incompleto o inválido.";
         } else if (cakeId === cakeGanador) {
             resultDiv.className = "result-box winner";
-            resultDiv.innerHTML = "🎉 ¡FLETES Y VICTORIA! ¡Has ganado una PORCIÓN GRATIS de cake! Muéstrale esta pantalla al vendedor.";
+            resultDiv.innerHTML = "🎉 ¡FELICIDADES! ¡Has ganado una PORCIÓN GRATIS de cake! Muéstrale esta pantalla al vendedor.";
+            lanzarConfeti();
         } else {
             resultDiv.className = "result-box loser";
             resultDiv.innerHTML = "😢 ¡Gracias por comprar! Este empaque no resultó ganador, ¡pero te esperamos en el próximo!";
