@@ -21,7 +21,7 @@
         }
         .card {
             background: white;
-            padding: 30px;
+            padding: 25px;
             border-radius: 20px;
             box-shadow: 0 10px 25px rgba(0,0,0,0.15);
             text-align: center;
@@ -30,63 +30,91 @@
             position: relative;
             z-index: 10;
         }
-        h1 { color: #d97706; font-size: 24px; margin-bottom: 10px; }
-        p { font-size: 16px; color: #555; line-height: 1.5; }
-        
+        h1 { color: #d97706; font-size: 22px; margin-bottom: 8px; }
+        p { font-size: 14px; color: #555; line-height: 1.4; margin-bottom: 15px; }
+
+        /* Contenedor de la Ruleta */
+        .wheel-container {
+            position: relative;
+            width: 220px;
+            height: 220px;
+            margin: 0 auto 15px auto;
+        }
+
+        .pointer {
+            position: absolute;
+            top: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 12px solid transparent;
+            border-right: 12px solid transparent;
+            border-top: 20px solid #ef4444;
+            z-index: 20;
+        }
+
+        .wheel {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            border: 6px solid #d97706;
+            position: relative;
+            overflow: hidden;
+            transition: transform 4s cubic-bezier(0.15, 0.95, 0.15, 1);
+            background: conic-gradient(
+                #f59e0b 0deg 72deg,
+                #f3f4f6 72deg 144deg,
+                #fbbf24 144deg 216deg,
+                #e5e7eb 216deg 288deg,
+                #d97706 288deg 360deg
+            );
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .wheel-center {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 45px;
+            height: 45px;
+            background: white;
+            border: 4px solid #d97706;
+            border-radius: 50%;
+            z-index: 10;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-weight: bold;
+            font-size: 14px;
+            color: #d97706;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+
         .btn {
             background-color: #d97706;
             color: white;
             border: none;
             padding: 12px 24px;
-            font-size: 18px;
+            font-size: 16px;
             font-weight: bold;
             border-radius: 12px;
             cursor: pointer;
-            margin-top: 20px;
+            width: 100%;
             transition: background 0.3s, transform 0.1s;
             box-shadow: 0 4px 10px rgba(217, 119, 6, 0.3);
         }
         .btn:hover { background-color: #b45309; }
         .btn:active { transform: scale(0.97); }
-
-        .countdown-container {
-            margin: 20px 0;
-            height: 80px;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-        }
-
-        .countdown {
-            font-size: 65px;
-            font-weight: bold;
-            color: #d97706;
-            animation: zoomEffect 1s ease-in-out infinite;
-        }
-
-        /* Animación de zoom individual para cada número */
-        @keyframes zoomEffect {
-            0% {
-                transform: scale(0.4);
-                opacity: 0;
-            }
-            50% {
-                transform: scale(1.1);
-                opacity: 1;
-            }
-            100% {
-                transform: scale(1);
-                opacity: 1;
-            }
-        }
+        .btn:disabled { background-color: #9ca3af; cursor: not-allowed; box-shadow: none; }
 
         .result-box {
-            margin-top: 20px;
-            padding: 20px;
+            margin-top: 15px;
+            padding: 15px;
             border-radius: 12px;
             font-weight: bold;
-            font-size: 18px;
+            font-size: 16px;
             animation: pop 0.5s ease-out;
         }
         .winner {
@@ -111,75 +139,68 @@
 
     <div class="card">
         <h1>🍰 Tradición Gourmet</h1>
-        <p>¡Gracias por adquirir tu delicioso cake artesanal! Descubre si este empaque trae una porción gratis.</p>
+        <p>¡Gira la ruleta frente al vendedor para descubrir si ganas una porción gratis!</p>
         
-        <!-- Pantalla inicial con el botón -->
-        <div id="start-section">
-            <button class="btn" onclick="iniciarSorteo()">¡Descubrir Resultado, Suerte!</button>
-        </div>
-
-        <!-- Pantalla de cuenta regresiva (inicialmente oculta) -->
-        <div id="countdown-section" class="hidden">
-            <div class="countdown-container">
-                <div id="countdown-number" class="countdown">3</div>
+        <!-- Ruleta Visual -->
+        <div class="wheel-container">
+            <div class="pointer"></div>
+            <div id="wheel" class="wheel">
+                <div class="wheel-center">🍰</div>
             </div>
-            <p>Calculando tu suerte...</p>
         </div>
 
-        <!-- Pantalla de resultado (inicialmente oculta) -->
+        <!-- Botón para girar -->
+        <button id="spin-btn" class="btn" onclick="girarRuleta()">¡Girar Ruleta!</button>
+
+        <!-- Resultado -->
         <div id="result" class="result-box hidden"></div>
     </div>
 
     <script>
-        const urlParams = new URLSearchParams(window.location.search);
-        const cakeId = urlParams.get('cake');
-        const cakeGanador = "3"; 
+        let currentRotation = 0;
+        let isSpinning = false;
 
-        function iniciarSorteo() {
-            if (!cakeId) {
-                document.getElementById('start-section').classList.add('hidden');
-                const res = document.getElementById('result');
-                res.className = "result-box loser";
-                res.innerHTML = "⚠️ Enlace incompleto o inválido.";
-                res.classList.remove('hidden');
-                return;
-            }
+        function girarRuleta() {
+            if (isSpinning) return;
+            isSpinning = document.getElementById('spin-btn').disabled = true;
 
-            document.getElementById('start-section').classList.add('hidden');
-            document.getElementById('countdown-section').classList.remove('hidden');
-
-            let contador = 3;
-            const numeroDiv = document.getElementById('countdown-number');
-            numeroDiv.innerHTML = contador;
-
-            const intervalo = setInterval(() => {
-                contador--;
-                if (contador > 0) {
-                    numeroDiv.innerHTML = contador;
-                    // Truco para reiniciar la animación de zoom en cada número
-                    numeroDiv.style.animation = 'none';
-                    numeroDiv.offsetHeight; // Forzar redibujado
-                    numeroDiv.style.animation = 'zoomEffect 1s ease-in-out infinite';
-                } else {
-                    clearInterval(intervalo);
-                    mostrarResultado();
-                }
-            }, 1000);
-        }
-
-        function mostrarResultado() {
-            document.getElementById('countdown-section').classList.add('hidden');
             const resultDiv = document.getElementById('result');
-            resultDiv.classList.remove('hidden');
+            resultDiv.classList.add('hidden');
 
-            if (cakeId === cakeGanador) {
-                resultDiv.className = "result-box winner";
-                resultDiv.innerHTML = "🎉 ¡FELICIDADES! ¡Has ganado una PORCIÓN GRATIS de cake! Muéstrale esta pantalla al vendedor.";
-                lanzarConfetti();
+            // Definir probabilidad: 20% de ganar (1 de cada 5 intentos aprox)
+            // Generamos un número aleatorio del 1 al 100. Si es menor o igual a 20, gana.
+            const esGanador = Math.random() <= 0.20;
+
+            // Grados base para que ruede varias vueltas completas (ej. 5 vueltas = 1800 grados)
+            const vueltasCompletas = 1800;
+            let anguloPremio = 0;
+
+            if (esGanador) {
+                // Posición aproximada de la sección ganadora en la ruleta
+                anguloPremio = 36; 
             } else {
-                resultDiv.className = "result-box loser";
-                resultDiv.innerHTML = "😢 ¡Gracias por comprar! Este empaque no resultó ganador, ¡pero te esperamos en el próximo!";
+                // Posición para las secciones de "Sigue intentando"
+                anguloPremio = 144; 
             }
+
+            // Calcular rotación total sumando la aleatoriedad visual
+            currentRotation = vueltasCompletas + anguloPremio + Math.floor(Math.random() * 30);
+            
+            const wheel = document.getElementById('wheel');
+            wheel.style.transform = `rotate(${currentRotation}deg)`;
+
+            // Esperar a que termine la animación de la ruleta (4 segundos)
+            setTimeout(() => {
+                resultDiv.classList.remove('hidden');
+                if (esGanador) {
+                    resultDiv.className = "result-box winner";
+                    resultDiv.innerHTML = "🎉 ¡FELICIDADES! ¡Has ganado una PORCIÓN GRATIS de cake! Muéstrale esta pantalla al vendedor.";
+                    lanzarConfetti();
+                } else {
+                    resultDiv.className = "result-box loser";
+                    resultDiv.innerHTML = "😢 ¡Gracias por comprar! Esta vez no hubo suerte, ¡pero te esperamos en el próximo!";
+                }
+            }, 4000);
         }
 
         function lanzarConfetti() {
@@ -193,16 +214,4 @@
                     particleCount: 60,
                     angle: 60,
                     spread: 55,
-                    origin: { x: 0 }
-                });
-                confetti({
-                    particleCount: 60,
-                    angle: 120,
-                    spread: 55,
-                    origin: { x: 1 }
-                });
-            }, 300);
-        }
-    </script>
-</body>
-</html>
+                    origin: { x:
