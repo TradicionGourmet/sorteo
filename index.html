@@ -7,7 +7,7 @@
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
     <style>
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
             margin: 0;
             padding: 0;
@@ -15,6 +15,7 @@
             justify-content: center;
             align-items: center;
             height: 100vh;
+            overflow: hidden;
         }
         .card {
             background: white;
@@ -26,13 +27,13 @@
             width: 90%;
         }
         h1 { color: #d97706; font-size: 22px; margin-bottom: 5px; }
-        p { font-size: 14px; color: #555; margin-bottom: 15px; }
+        p { font-size: 14px; color: #555; margin-bottom: 20px; }
 
         .wheel-container {
             position: relative;
-            width: 180px;
-            height: 180px;
-            margin: 0 auto 15px auto;
+            width: 200px;
+            height: 200px;
+            margin: 0 auto 20px auto;
         }
         .pointer {
             position: absolute;
@@ -41,9 +42,9 @@
             transform: translateX(-50%);
             width: 0;
             height: 0;
-            border-left: 10px solid transparent;
-            border-right: 10px solid transparent;
-            border-top: 18px solid #ef4444;
+            border-left: 11px solid transparent;
+            border-right: 11px solid transparent;
+            border-top: 20px solid #ef4444;
             z-index: 20;
         }
         .wheel {
@@ -61,51 +62,105 @@
                 #e5e7eb 216deg 288deg,
                 #d97706 288deg 360deg
             );
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
         }
         .wheel-center {
             position: absolute;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            width: 35px;
-            height: 35px;
+            width: 40px;
+            height: 40px;
             background: white;
             border: 3px solid #d97706;
             border-radius: 50%;
             display: flex;
             justify-content: center;
             align-items: center;
-            font-size: 14px;
+            font-size: 16px;
         }
         .btn {
             background-color: #d97706;
             color: white;
             border: none;
-            padding: 12px 20px;
+            padding: 13px 20px;
             font-size: 16px;
             font-weight: bold;
-            border-radius: 10px;
+            border-radius: 12px;
             cursor: pointer;
             width: 100%;
+            box-shadow: 0 4px 10px rgba(217, 119, 6, 0.3);
         }
-        .btn:disabled { background-color: #9ca3af; }
-        .result-box {
-            margin-top: 15px;
-            padding: 12px;
-            border-radius: 10px;
+        .btn:disabled { background-color: #9ca3af; box-shadow: none; }
+
+        /* Estilos de la Ventana Emergente (Modal) */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 50;
+            backdrop-filter: blur(3px);
+        }
+        .modal-box {
+            background: white;
+            padding: 25px;
+            border-radius: 20px;
+            text-align: center;
+            max-width: 310px;
+            width: 85%;
+            box-shadow: 0 15px 30px rgba(0,0,0,0.25);
+            animation: popIn 0.35s ease-out;
+        }
+        @keyframes popIn {
+            0% { transform: scale(0.7); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        .modal-icon { font-size: 45px; margin-bottom: 10px; }
+        .modal-title { font-size: 20px; font-weight: bold; margin-bottom: 10px; }
+        .winner-title { color: #059669; }
+        .loser-title { color: #4b5563; }
+        .modal-text { font-size: 15px; color: #374151; line-height: 1.4; margin-bottom: 20px; }
+
+        /* Botón de Instagram */
+        .ig-btn {
+            display: inline-block;
+            background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%);
+            color: white;
+            text-decoration: none;
+            padding: 12px 20px;
+            border-radius: 12px;
             font-weight: bold;
-            font-size: 14px;
+            font-size: 15px;
+            width: 100%;
+            box-sizing: border-box;
+            margin-bottom: 10px;
+            box-shadow: 0 4px 10px rgba(220, 39, 67, 0.3);
         }
-        .winner { background-color: #d1fae5; color: #065f46; border: 2px dashed #10b981; }
-        .loser { background-color: #f3f4f6; color: #4b5563; border: 2px solid #d1d5db; }
-        .hidden { display: none; }
+        .close-btn {
+            background: #e5e7eb;
+            color: #374151;
+            border: none;
+            padding: 10px;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: bold;
+            width: 100%;
+            cursor: pointer;
+        }
+        .hidden { display: none !important; }
     </style>
 </head>
 <body>
 
     <div class="card">
         <h1>🍰 Tradición Gourmet</h1>
-        <p>¡Gira la ruleta frente al vendedor para descubrir si ganas!</p>
+        <p>¡Gira la ruleta frente al vendedor para descubrir si ganas una porción gratis!</p>
         
         <div class="wheel-container">
             <div class="pointer"></div>
@@ -115,8 +170,22 @@
         </div>
 
         <button id="spin-btn" class="btn" onclick="girarRuleta()">¡Girar Ruleta!</button>
+    </div>
 
-        <div id="result" class="result-box hidden"></div>
+    <!-- Ventana Emergente con el Resultado -->
+    <div id="result-modal" class="modal-overlay hidden">
+        <div class="modal-box">
+            <div id="modal-icon" class="modal-icon">🎉</div>
+            <div id="modal-title" class="modal-title">¡FELICIDADES!</div>
+            <div id="modal-text" class="modal-text">Has ganado una porción gratis.</div>
+            
+            <!-- Enlace directo a Instagram -->
+            <a href="https://www.instagram.com/tradicion.gourmett/" target="_blank" class="ig-btn">
+                📸 Síguenos en @tradicion.gourmett
+            </a>
+            
+            <button class="close-btn" onclick="cerrarModal()">Cerrar</button>
+        </div>
     </div>
 
     <script>
@@ -124,12 +193,11 @@
 
         function girarRuleta() {
             const btn = document.getElementById('spin-btn');
-            const resultDiv = document.getElementById('result');
             const wheel = document.getElementById('wheel');
 
             btn.disabled = true;
-            resultDiv.classList.add('hidden');
 
+            // 20% de probabilidad de ganar
             const esGanador = Math.random() <= 0.20;
             const vueltasBase = 1800;
             let anguloExtra = esGanador ? 36 : 144; 
@@ -138,17 +206,37 @@
             wheel.style.transform = `rotate(${gradosTotales}deg)`;
 
             setTimeout(() => {
-                resultDiv.classList.remove('hidden');
-                if (esGanador) {
-                    resultDiv.className = "result-box winner";
-                    resultDiv.innerHTML = "🎉 ¡FELICIDADES! ¡Ganaste una PORCIÓN GRATIS!";
-                    confetti({ particleCount: 80, spread: 70, origin: { y: 0.6 } });
-                } else {
-                    resultDiv.className = "result-box loser";
-                    resultDiv.innerHTML = "😢 ¡Gracias por comprar! Esta vez no hubo suerte.";
-                }
+                mostrarModal(esGanador);
                 btn.disabled = false;
             }, 4000);
+        }
+
+        function mostrarModal(esGanador) {
+            const modal = document.getElementById('result-modal');
+            const icon = document.getElementById('modal-icon');
+            const title = document.getElementById('modal-title');
+            const text = document.getElementById('modal-text');
+
+            if (esGanador) {
+                icon.innerHTML = "🎉";
+                title.innerHTML = "¡FELICIDADES!";
+                title.className = "modal-title winner-title";
+                text.innerHTML = "¡Has ganado una <b>PORCIÓN GRATIS de cake</b>! Muéstrale esta ventana al vendedor para reclamarla.";
+                
+                // Confeti por encima de la ventana emergente
+                confetti({ particleCount: 90, spread: 70, origin: { y: 0.6 }, zIndex: 100 });
+            } else {
+                icon.innerHTML = "🍰";
+                title.innerHTML = "¡Gracias por comprar!";
+                title.className = "modal-title loser-title";
+                text.innerHTML = "Esta vez no hubo premio, ¡pero disfruta tu cake y síguenos en Instagram para más sorteos!";
+            }
+
+            modal.classList.remove('hidden');
+        }
+
+        function cerrarModal() {
+            document.getElementById('result-modal').classList.add('hidden');
         }
     </script>
 </body>
