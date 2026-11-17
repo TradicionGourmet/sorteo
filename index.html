@@ -4,11 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sorteo - Tradición Gourmet</title>
-    <!-- Librería para el efecto de confeti -->
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
     <style>
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: Arial, sans-serif;
             background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
             margin: 0;
             padding: 0;
@@ -16,8 +15,6 @@
             justify-content: center;
             align-items: center;
             height: 100vh;
-            color: #333;
-            overflow: hidden;
         }
         .card {
             background: white;
@@ -25,25 +22,21 @@
             border-radius: 20px;
             box-shadow: 0 10px 25px rgba(0,0,0,0.15);
             text-align: center;
-            max-width: 350px;
+            max-width: 330px;
             width: 90%;
-            position: relative;
-            z-index: 10;
         }
-        h1 { color: #d97706; font-size: 22px; margin-bottom: 8px; }
-        p { font-size: 14px; color: #555; line-height: 1.4; margin-bottom: 15px; }
+        h1 { color: #d97706; font-size: 22px; margin-bottom: 5px; }
+        p { font-size: 14px; color: #555; margin-bottom: 15px; }
 
-        /* Contenedor de la Ruleta */
         .wheel-container {
             position: relative;
-            width: 200px;
-            height: 200px;
+            width: 180px;
+            height: 180px;
             margin: 0 auto 15px auto;
         }
-
         .pointer {
             position: absolute;
-            top: -12px;
+            top: -10px;
             left: 50%;
             transform: translateX(-50%);
             width: 0;
@@ -53,14 +46,12 @@
             border-top: 18px solid #ef4444;
             z-index: 20;
         }
-
         .wheel {
             width: 100%;
             height: 100%;
             border-radius: 50%;
-            border: 6px solid #d97706;
+            border: 5px solid #d97706;
             position: relative;
-            overflow: hidden;
             transform: rotate(0deg);
             transition: transform 4s cubic-bezier(0.15, 0.95, 0.15, 1);
             background: conic-gradient(
@@ -70,38 +61,95 @@
                 #e5e7eb 216deg 288deg,
                 #d97706 288deg 360deg
             );
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
         }
-
         .wheel-center {
             position: absolute;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            width: 40px;
-            height: 40px;
+            width: 35px;
+            height: 35px;
             background: white;
             border: 3px solid #d97706;
             border-radius: 50%;
-            z-index: 10;
             display: flex;
             justify-content: center;
             align-items: center;
-            font-size: 16px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            font-size: 14px;
         }
-
         .btn {
             background-color: #d97706;
             color: white;
             border: none;
-            padding: 12px 24px;
+            padding: 12px 20px;
             font-size: 16px;
             font-weight: bold;
-            border-radius: 12px;
+            border-radius: 10px;
             cursor: pointer;
             width: 100%;
-            transition: background 0.3s;
-            box-shadow: 0 4px 10px rgba(217, 119, 6, 0.3);
         }
-        .btn:hover { background-color: #b45309;
+        .btn:disabled { background-color: #9ca3af; }
+        .result-box {
+            margin-top: 15px;
+            padding: 12px;
+            border-radius: 10px;
+            font-weight: bold;
+            font-size: 14px;
+        }
+        .winner { background-color: #d1fae5; color: #065f46; border: 2px dashed #10b981; }
+        .loser { background-color: #f3f4f6; color: #4b5563; border: 2px solid #d1d5db; }
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+
+    <div class="card">
+        <h1>🍰 Tradición Gourmet</h1>
+        <p>¡Gira la ruleta frente al vendedor para descubrir si ganas!</p>
+        
+        <div class="wheel-container">
+            <div class="pointer"></div>
+            <div id="wheel" class="wheel">
+                <div class="wheel-center">🍰</div>
+            </div>
+        </div>
+
+        <button id="spin-btn" class="btn" onclick="girarRuleta()">¡Girar Ruleta!</button>
+
+        <div id="result" class="result-box hidden"></div>
+    </div>
+
+    <script>
+        let gradosTotales = 0;
+
+        function girarRuleta() {
+            const btn = document.getElementById('spin-btn');
+            const resultDiv = document.getElementById('result');
+            const wheel = document.getElementById('wheel');
+
+            btn.disabled = true;
+            resultDiv.classList.add('hidden');
+
+            const esGanador = Math.random() <= 0.20;
+            const vueltasBase = 1800;
+            let anguloExtra = esGanador ? 36 : 144; 
+            
+            gradosTotales += vueltasBase + anguloExtra + Math.floor(Math.random() * 30);
+            wheel.style.transform = `rotate(${gradosTotales}deg)`;
+
+            setTimeout(() => {
+                resultDiv.classList.remove('hidden');
+                if (esGanador) {
+                    resultDiv.className = "result-box winner";
+                    resultDiv.innerHTML = "🎉 ¡FELICIDADES! ¡Ganaste una PORCIÓN GRATIS!";
+                    confetti({ particleCount: 80, spread: 70, origin: { y: 0.6 } });
+                } else {
+                    resultDiv.className = "result-box loser";
+                    resultDiv.innerHTML = "😢 ¡Gracias por comprar! Esta vez no hubo suerte.";
+                }
+                btn.disabled = false;
+            }, 4000);
+        }
+    </script>
+</body>
+</html>
