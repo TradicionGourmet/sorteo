@@ -91,7 +91,7 @@
             width: 100%;
             box-shadow: 0 4px 10px rgba(217, 119, 6, 0.3);
         }
-        .btn:disabled { background-color: #9ca3af; box-shadow: none; }
+        .btn:disabled { background-color: #9ca3af; box-shadow: none; cursor: not-allowed; }
 
         /* Estilos de la Ventana Emergente (Modal) */
         .modal-overlay {
@@ -127,7 +127,6 @@
         .loser-title { color: #4b5563; }
         .modal-text { font-size: 15px; color: #374151; line-height: 1.4; margin-bottom: 20px; }
 
-        /* Botón de Instagram */
         .ig-btn {
             display: inline-block;
             background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%);
@@ -160,7 +159,7 @@
 
     <div class="card">
         <h1>🍰 Tradición Gourmet</h1>
-        <p>¡Gira la ruleta frente al vendedor para descubrir si ganas una porción gratis!</p>
+        <p id="instruction-text">¡Gira la ruleta frente al vendedor para descubrir si ganas una porción gratis!</p>
         
         <div class="wheel-container">
             <div class="pointer"></div>
@@ -179,7 +178,6 @@
             <div id="modal-title" class="modal-title">¡FELICIDADES!</div>
             <div id="modal-text" class="modal-text">Has ganado una porción gratis.</div>
             
-            <!-- Enlace directo a Instagram -->
             <a href="https://www.instagram.com/tradicion.gourmett/" target="_blank" class="ig-btn">
                 📸 Síguenos en @tradicion.gourmett
             </a>
@@ -190,6 +188,36 @@
 
     <script>
         let gradosTotales = 0;
+        
+        // Temporizador de 24 horas en milisegundos
+        const TIEMPO_ESPERA = 24 * 60 * 60 * 1000; 
+
+        window.onload = function() {
+            verificarTiempoRestante();
+        };
+
+        function verificarTiempoRestante() {
+            const ultimoGiro = localStorage.getItem('ultimo_giro');
+            if (ultimoGiro) {
+                const tiempoActual = new Date().getTime();
+                const tiempoTranscurrido = tiempoActual - parseInt(ultimoGiro);
+
+                if (tiempoTranscurrido < TIEMPO_ESPERA) {
+                    const tiempoRestante = TIEMPO_ESPERA - tiempoTranscurrido;
+                    const horasRestantes = Math.ceil(tiempoRestante / (1000 * 60 * 60));
+                    
+                    bloquearRuleta(horasRestantes);
+                }
+            }
+        }
+
+        function bloquearRuleta(horas) {
+            const btn = document.getElementById('spin-btn');
+            btn.disabled = true;
+            btn.style.backgroundColor = "#9ca3af";
+            btn.innerHTML = `⏳ Próximo giro en ~${horas}h`;
+            document.getElementById('instruction-text').innerHTML = `Ya has participado recientemente. Podrás volver a girar en aproximadamente ${horas} hora(s).`;
+        }
 
         function girarRuleta() {
             const btn = document.getElementById('spin-btn');
@@ -197,8 +225,11 @@
 
             btn.disabled = true;
 
-            // 20% de probabilidad de ganar
-            const esGanador = Math.random() <= 0.20;
+            // Guardar la hora exacta en la que giró
+            localStorage.setItem('ultimo_giro', new Date().getTime().toString());
+
+            // 5% de probabilidad de ganar
+            const esGanador = Math.random() <= 0.05;
             const vueltasBase = 1800;
             let anguloExtra = esGanador ? 36 : 144; 
             
@@ -207,7 +238,6 @@
 
             setTimeout(() => {
                 mostrarModal(esGanador);
-                btn.disabled = false;
             }, 4000);
         }
 
@@ -222,8 +252,6 @@
                 title.innerHTML = "¡FELICIDADES!";
                 title.className = "modal-title winner-title";
                 text.innerHTML = "¡Has ganado una <b>PORCIÓN GRATIS de cake</b>! Muéstrale esta ventana al vendedor para reclamarla.";
-                
-                // Confeti por encima de la ventana emergente
                 confetti({ particleCount: 90, spread: 70, origin: { y: 0.6 }, zIndex: 100 });
             } else {
                 icon.innerHTML = "🍰";
@@ -237,6 +265,7 @@
 
         function cerrarModal() {
             document.getElementById('result-modal').classList.add('hidden');
+            verificarTiempoRestante();
         }
     </script>
 </body>
