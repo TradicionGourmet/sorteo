@@ -93,7 +93,6 @@
         }
         .btn:disabled { background-color: #9ca3af; box-shadow: none; cursor: not-allowed; }
 
-        /* Estilos de la Ventana Emergente (Modal) */
         .modal-overlay {
             position: fixed;
             top: 0;
@@ -171,7 +170,6 @@
         <button id="spin-btn" class="btn" onclick="girarRuleta()">¡Girar Ruleta!</button>
     </div>
 
-    <!-- Ventana Emergente con el Resultado -->
     <div id="result-modal" class="modal-overlay hidden">
         <div class="modal-box">
             <div id="modal-icon" class="modal-icon">🎉</div>
@@ -188,48 +186,53 @@
 
     <script>
         let gradosTotales = 0;
-        
-        // Temporizador de 24 horas en milisegundos
-        const TIEMPO_ESPERA = 24 * 60 * 60 * 1000; 
+        const TIEMPO_ESPERA = 24 * 60 * 60 * 1000; // 24 horas
 
         window.onload = function() {
-            verificarTiempoRestante();
+            verificarBloqueo();
         };
 
-        function verificarTiempoRestante() {
-            const ultimoGiro = localStorage.getItem('ultimo_giro');
+        function verificarBloqueo() {
+            const ultimoGiro = localStorage.getItem('tg_ultimo_giro');
             if (ultimoGiro) {
-                const tiempoActual = new Date().getTime();
-                const tiempoTranscurrido = tiempoActual - parseInt(ultimoGiro);
-
+                const tiempoTranscurrido = new Date().getTime() - parseInt(ultimoGiro);
                 if (tiempoTranscurrido < TIEMPO_ESPERA) {
-                    const tiempoRestante = TIEMPO_ESPERA - tiempoTranscurrido;
-                    const horasRestantes = Math.ceil(tiempoRestante / (1000 * 60 * 60));
-                    
-                    bloquearRuleta(horasRestantes);
+                    const horasRestantes = Math.ceil((TIEMPO_ESPERA - tiempoTranscurrido) / (1000 * 60 * 60));
+                    bloquearBoton(horasRestantes);
+                } else {
+                    // Si ya pasaron las 24 horas, limpiamos el registro para permitir un nuevo giro
+                    localStorage.removeItem('tg_ultimo_giro');
                 }
             }
         }
 
-        function bloquearRuleta(horas) {
+        function bloquearBoton(horas) {
             const btn = document.getElementById('spin-btn');
             btn.disabled = true;
             btn.style.backgroundColor = "#9ca3af";
-            btn.innerHTML = `⏳ Próximo giro en ~${horas}h`;
-            document.getElementById('instruction-text').innerHTML = `Ya has participado recientemente. Podrás volver a girar en aproximadamente ${horas} hora(s).`;
+            btn.innerHTML = `⏳ Ya participaste (~${horas}h restantes)`;
+            document.getElementById('instruction-text').innerHTML = `Este dispositivo ya registró un giro. Podrás volver a participar en aproximadamente ${horas} hora(s).`;
         }
 
         function girarRuleta() {
+            // Validación estricta antes de girar
+            const ultimoGiro = localStorage.getItem('tg_ultimo_giro');
+            if (ultimoGiro && (new Date().getTime() - parseInt(ultimoGiro) < TIEMPO_ESPERA)) {
+                alert("Ya has utilizado tu oportunidad en las últimas 24 horas.");
+                return;
+            }
+
             const btn = document.getElementById('spin-btn');
             const wheel = document.getElementById('wheel');
 
             btn.disabled = true;
 
-            // Guardar la hora exacta en la que giró
-            localStorage.setItem('ultimo_giro', new Date().getTime().toString());
+            // GUARDAR CANDADO INMEDIATO (Antes de que termine la animación)
+            localStorage.setItem('tg_ultimo_giro', new Date().getTime().toString());
 
-            // 5% de probabilidad de ganar
+            // Probabilidad estricta del 5% (Math.random genera de 0 a 1, <= 0.05 es exactamente el 5%)
             const esGanador = Math.random() <= 0.05;
+            
             const vueltasBase = 1800;
             let anguloExtra = esGanador ? 36 : 144; 
             
@@ -265,7 +268,7 @@
 
         function cerrarModal() {
             document.getElementById('result-modal').classList.add('hidden');
-            verificarTiempoRestante();
+            verificarBloqueo();
         }
     </script>
 </body>
