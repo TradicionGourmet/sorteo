@@ -186,22 +186,22 @@
 
     <script>
         let gradosTotales = 0;
-        const TIEMPO_ESPERA = 24 * 60 * 60 * 1000; // 24 horas
+        const TIEMPO_ESPERA = 24 * 60 * 60 * 1000; // 24 horas en milisegundos
 
         window.onload = function() {
             verificarBloqueo();
         };
 
         function verificarBloqueo() {
-            const ultimoGiro = localStorage.getItem('tg_ultimo_giro');
+            const ultimoGiro = localStorage.getItem('tradicion_gourmet_bloqueado');
             if (ultimoGiro) {
                 const tiempoTranscurrido = new Date().getTime() - parseInt(ultimoGiro);
                 if (tiempoTranscurrido < TIEMPO_ESPERA) {
                     const horasRestantes = Math.ceil((TIEMPO_ESPERA - tiempoTranscurrido) / (1000 * 60 * 60));
                     bloquearBoton(horasRestantes);
                 } else {
-                    // Si ya pasaron las 24 horas, limpiamos el registro para permitir un nuevo giro
-                    localStorage.removeItem('tg_ultimo_giro');
+                    // Ya pasaron las 24 horas, liberamos el bloqueo
+                    localStorage.removeItem('tradicion_gourmet_bloqueado');
                 }
             }
         }
@@ -215,24 +215,24 @@
         }
 
         function girarRuleta() {
-            // Validación estricta antes de girar
-            const ultimoGiro = localStorage.getItem('tg_ultimo_giro');
+            // Doble verificación de seguridad
+            const ultimoGiro = localStorage.getItem('tradicion_gourmet_bloqueado');
             if (ultimoGiro && (new Date().getTime() - parseInt(ultimoGiro) < TIEMPO_ESPERA)) {
-                alert("Ya has utilizado tu oportunidad en las últimas 24 horas.");
+                alert("Ya has utilizado tu oportunidad.");
                 return;
             }
 
             const btn = document.getElementById('spin-btn');
-            const wheel = document.getElementById('wheel');
-
             btn.disabled = true;
 
-            // GUARDAR CANDADO INMEDIATO (Antes de que termine la animación)
-            localStorage.setItem('tg_ultimo_giro', new Date().getTime().toString());
+            // BLOQUEO INMEDIATO: Guardamos el tiempo exacto antes de que empiece a girar
+            localStorage.setItem('tradicion_gourmet_bloqueado', new Date().getTime().toString());
 
-            // Probabilidad estricta del 5% (Math.random genera de 0 a 1, <= 0.05 es exactamente el 5%)
-            const esGanador = Math.random() <= 0.05;
-            
+            // PROBABILIDAD DEL 2% (Sale un número aleatorio del 1 al 100; solo si sale 1 o 2, gana)
+            const numeroAzar = Math.floor(Math.random() * 100) + 1;
+            const esGanador = numeroAzar <= 2; // (Puedes cambiar el 2 por 1 si quieres 1% exacto)
+
+            const wheel = document.getElementById('wheel');
             const vueltasBase = 1800;
             let anguloExtra = esGanador ? 36 : 144; 
             
